@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroScore - Calculadora de Riesgo Ganadero</title>
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-light: #4CAF50;
+            --primary-dark: #1B5E20;
+            --secondary: #FF9800;
+            --secondary-light: #FFB74D;
+            --background: #F1F8E9;
+            --card-bg: #FFFFFF;
+            --text: #212121;
+            --text-light: #757575;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #F44336;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section, .results-section {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-light);
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .radio-option {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .radio-option input {
+            display: none;
+        }
+        
+        .radio-option label {
+            display: block;
+            padding: 12px 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: normal;
+        }
+        
+        .radio-option input:checked + label {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .slider-container {
+            margin-top: 10px;
+        }
+        
+        .slider-value {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            color: var(--primary);
+        }
+        
+        .btn-calculate {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+        }
+        
+        .score-value {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .score-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .risk-level {
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
+        .low-risk {
+            background-color: var(--success);
+        }
+        
+        .medium-risk {
+            background-color: var(--warning);
+            color: var(--text);
+        }
+        
+        .high-risk {
+            background-color: var(--danger);
+        }
+        
+        .results-details {
+            margin-top: 25px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recommendations {
+            margin-top: 30px;
+        }
+        
+        .recommendation {
+            background-color: #E8F5E9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .recommendation h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .info-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background-color: var(--primary-light);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 18px;
+            font-size: 12px;
+            margin-left: 5px;
+            cursor: help;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AgroScore</h1>
+            <p>Calculadora inteligente de score de riesgo para optimizar tu producción ganadera</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="app-container">
+            <section class="form-section">
+                <h2 class="section-title">Evaluación de Parámetros Ganaderos</h2>
+                
+                <div class="form-group">
+                    <label for="species">Especie de Ganado</label>
+                    <select id="species">
+                        <option value="">Seleccione una especie</option>
+                        <option value="bovino">Bovino (Vacuno)</option>
+                        <option value="ovino">Ovino (Ovejas)</option>
+                        <option value="caprino">Caprino (Cabras)</option>
+                        <option value="porcino">Porcino (Cerdos)</option>
+                        <option value="equino">Equino (Caballos)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pasture-type">Tipo de Pastura</label>
+                    <select id="pasture-type">
+                        <option value="">Seleccione el tipo de pastura</option>
+                        <option value="natural">Pastura Natural</option>
+                        <option value="mejorada">Pastura Mejorada</option>
+                        <option value="cultivada">Pastura Cultivada</option>
+                        <option value="mixta">Pastura Mixta</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Forma de Suministro de Pastura</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="direct-grazing" name="pasture-supply" value="direct">
+                            <label for="direct-grazing">Pastoreo Directo</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="cut-carry" name="pasture-supply" value="cut">
+                            <label for="cut-carry">Corte y Acarreo</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="mixed" name="pasture-supply" value="mixed">
+                            <label for="mixed">Mixto</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sistema de Pastoreo</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="continuous" name="grazing-system" value="continuous">
+                            <label for="continuous">Continuo</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="rotational" name="grazing-system" value="rotational">
+                            <label for="rotational">Rotacional</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="voisin" name="grazing-system" value="voisin">
+                            <label for="voisin">Voisin</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stocking-rate">Capacidad de Carga (Animales/Ha)</label>
+                    <input type="range" id="stocking-rate" min="0.5" max="5" step="0.1" value="2">
+                    <div class="slider-value" id="stocking-value">2.0 Animales/Ha</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="forage-quality">Calidad del Forraje</label>
+                    <input type="range" id="forage-quality" min="1" max="10" value="7">
+                    <div class="slider-value" id="forage-value">7/10</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="water-access">Acceso al Agua</label>
+                    <select id="water-access">
+                        <option value="excellent">Excelente (Agua permanente)</option>
+                        <option value="good">Bueno (Agua disponible la mayor parte del tiempo)</option>
+                        <option value="regular">Regular (Agua disponible estacionalmente)</option>
+                        <option value="poor">Pobre (Agua limitada)</option>
+                    </select>
+                </div>
+                
+                <button class="btn-calculate" id="calculate-btn">Calcular Score de Riesgo</button>
+            </section>
+            
+            <section class="results-section">
+                <h2 class="section-title">Resultados del Análisis</h2>
+                
+                <div class="score-display">
+                    <p>SCORE DE RIESGO</p>
+                    <div class="score-value" id="score-value">--</div>
+                    <div class="score-text" id="score-text">Complete el formulario</div>
+                    <div class="risk-level" id="risk-level">-</div>
+                </div>
+                
+                <div class="results-details">
+                    <h3>Detalles de la Evaluación</h3>
+                    <div class="result-item">
+                        <span>Adaptabilidad de la Especie:</span>
+                        <span id="adaptability-result">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Uso de Pastura:</span>
+                        <span id="pasture-result">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Sistema de Pastoreo:</span>
+                        <span id="grazing-result">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Capacidad de Carga:</span>
+                        <span id="stocking-result">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Calidad del Forraje:</span>
+                        <span id="forage-result">-</span>
+                    </div>
+                </div>
+                
+                <div class="recommendations">
+                    <h3>Recomendaciones</h3>
+                    <div class="recommendation">
+                        <h4>Optimización de Pasturas</h4>
+                        <p id="pasture-recommendation">Complete la evaluación para obtener recomendaciones específicas.</p>
+                    </div>
+                    <div class="recommendation">
+                        <h4>Manejo del Ganado</h4>
+                        <p id="management-recommendation">Complete la evaluación para obtener recomendaciones específicas.</p>
+                    </div>
+                    <div class="recommendation">
+                        <h4>Mejora de Infraestructura</h4>
+                        <p id="infrastructure-recommendation">Complete la evaluación para obtener recomendaciones específicas.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>AgroScore - Herramienta de evaluación de riesgo ganadero &copy; 2023</p>
+            <p>Desarrollado para optimizar la producción y sostenibilidad ganadera</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Actualizar valores de los sliders
+            const stockingRate = document.getElementById('stocking-rate');
+            const stockingValue = document.getElementById('stocking-value');
+            const forageQuality = document.getElementById('forage-quality');
+            const forageValue = document.getElementById('forage-value');
+            
+            stockingRate.addEventListener('input', function() {
+                stockingValue.textContent = `${this.value} Animales/Ha`;
+            });
+            
+            forageQuality.addEventListener('input', function() {
+                forageValue.textContent = `${this.value}/10`;
+            });
+            
+            // Calcular score
+            document.getElementById('calculate-btn').addEventListener('click', function() {
+                calculateScore();
+            });
+            
+            function calculateScore() {
+                // Obtener valores del formulario
+                const species = document.getElementById('species').value;
+                const pastureType = document.getElementById('pasture-type').value;
+                const pastureSupply = document.querySelector('input[name="pasture-supply"]:checked');
+                const grazingSystem = document.querySelector('input[name="grazing-system"]:checked');
+                const stockingRateValue = parseFloat(stockingRate.value);
+                const forageQualityValue = parseInt(forageQuality.value);
+                const waterAccess = document.getElementById('water-access').value;
+                
+                // Validar que todos los campos estén completos
+                if (!species || !pastureType || !pastureSupply || !grazingSystem || !waterAccess) {
+                    alert('Por favor, complete todos los campos del formulario.');
+                    return;
+                }
+                
+                // Calcular puntuaciones individuales
+                let adaptabilityScore = calculateAdaptabilityScore(species);
+                let pastureScore = calculatePastureScore(pastureType);
+                let supplyScore = calculateSupplyScore(pastureSupply.value);
+                let grazingScore = calculateGrazingScore(grazingSystem.value);
+                let stockingScore = calculateStockingScore(stockingRateValue);
+                let forageScore = calculateForageScore(forageQualityValue);
+                let waterScore = calculateWaterScore(waterAccess);
+                
+                // Calcular score total (ponderado)
+                const totalScore = Math.round(
+                    (adaptabilityScore * 0.15) +
+                    (pastureScore * 0.15) +
+                    (supplyScore * 0.1) +
+                    (grazingScore * 0.2) +
+                    (stockingScore * 0.2) +
+                    (forageScore * 0.1) +
+                    (waterScore * 0.1)
+                );
+                
+                // Mostrar resultados
+                document.getElementById('score-value').textContent = totalScore;
+                
+                // Determinar nivel de riesgo
+                let riskLevel, riskText, riskClass;
+                if (totalScore >= 80) {
+                    riskLevel = "BAJO RIESGO";
+                    riskText = "Excelente gestión ganadera";
+                    riskClass = "low-risk";
+                } else if (totalScore >= 60) {
+                    riskLevel = "RIESGO MODERADO";
+                    riskText = "Buena gestión con áreas de mejora";
+                    riskClass = "medium-risk";
+                } else {
+                    riskLevel = "ALTO RIESGO";
+                    riskText = "Se requieren mejoras significativas";
+                    riskClass = "high-risk";
+                }
+                
+                document.getElementById('score-text').textContent = riskText;
+                document.getElementById('risk-level').textContent = riskLevel;
+                document.getElementById('risk-level').className = `risk-level ${riskClass}`;
+                
+                // Mostrar detalles de evaluación
+                document.getElementById('adaptability-result').textContent = `${adaptabilityScore}/100`;
+                document.getElementById('pasture-result').textContent = `${pastureScore}/100`;
+                document.getElementById('grazing-result').textContent = `${grazingScore}/100`;
+                document.getElementById('stocking-result').textContent = `${stockingScore}/100`;
+                document.getElementById('forage-result').textContent = `${forageScore}/100`;
+                
+                // Generar recomendaciones
+                generateRecommendations(
+                    species, 
+                    pastureType, 
+                    pastureSupply.value, 
+                    grazingSystem.value, 
+                    stockingRateValue, 
+                    forageQualityValue, 
+                    waterAccess,
+                    totalScore
+                );
+            }
+            
+            function calculateAdaptabilityScore(species) {
+                // Puntuación basada en la adaptabilidad de la especie
+                const scores = {
+                    'bovino': 85,
+                    'ovino': 75,
+                    'caprino': 70,
+                    'porcino': 60,
+                    'equino': 80
+                };
+                return scores[species] || 50;
+            }
+            
+            function calculatePastureScore(pastureType) {
+                // Puntuación basada en el tipo de pastura
+                const scores = {
+                    'natural': 60,
+                    'mejorada': 80,
+                    'cultivada': 90,
+                    'mixta': 85
+                };
+                return scores[pastureType] || 50;
+            }
+            
+            function calculateSupplyScore(supplyType) {
+                // Puntuación basada en la forma de suministro
+                const scores = {
+                    'direct': 70,
+                    'cut': 85,
+                    'mixed': 80
+                };
+                return scores[supplyType] || 50;
+            }
+            
+            function calculateGrazingScore(grazingSystem) {
+                // Puntuación basada en el sistema de pastoreo
+                const scores = {
+                    'continuous': 50,
+                    'rotational': 80,
+                    'voisin': 95
+                };
+                return scores[grazingSystem] || 50;
+            }
+            
+            function calculateStockingScore(stockingRate) {
+                // Puntuación basada en la capacidad de carga
+                // Valores óptimos entre 1.5 y 3 animales/Ha
+                if (stockingRate >= 1.5 && stockingRate <= 3) {
+                    return 90;
+                } else if (stockingRate < 1 || stockingRate > 4) {
+                    return 40;
+                } else {
+                    return 70;
+                }
+            }
+            
+            function calculateForageScore(forageQuality) {
+                // Puntuación basada en la calidad del forraje (1-10)
+                return forageQuality * 10;
+            }
+            
+            function calculateWaterScore(waterAccess) {
+                // Puntuación basada en el acceso al agua
+                const scores = {
+                    'excellent': 100,
+                    'good': 80,
+                    'regular': 60,
+                    'poor': 40
+                };
+                return scores[waterAccess] || 50;
+            }
+            
+            function generateRecommendations(species, pastureType, supplyType, grazingSystem, stockingRate, forageQuality, waterAccess, totalScore) {
+                // Recomendaciones para pasturas
+                let pastureRec = "";
+                if (pastureType === 'natural') {
+                    pastureRec = "Considere mejorar sus pasturas naturales con especies de mayor valor nutritivo para aumentar la productividad.";
+                } else if (pastureType === 'mejorada') {
+                    pastureRec = "Mantenga un programa de fertilización y resiembra periódica para conservar la calidad de sus pasturas mejoradas.";
+                } else {
+                    pastureRec = "Sus pasturas cultivadas son de alta calidad. Implemente rotaciones adecuadas para mantener su productividad.";
+                }
+                
+                if (forageQuality < 7) {
+                    pastureRec += " La calidad del forraje puede mejorarse con suplementación estratégica y manejo adecuado del pastoreo.";
+                }
+                
+                document.getElementById('pasture-recommendation').textContent = pastureRec;
+                
+                // Recomendaciones para manejo
+                let managementRec = "";
+                if (grazingSystem === 'continuous') {
+                    managementRec = "El pastoreo continuo puede llevar al sobrepastoreo. Considere implementar un sistema rotacional para mejorar la salud del pastizal.";
+                } else if (grazingSystem === 'rotational') {
+                    managementRec = "Su sistema rotacional es adecuado. Asegúrese de respetar los períodos de descanso para permitir la recuperación del pasto.";
+                } else {
+                    managementRec = "El sistema Voisin es excelente para la sostenibilidad. Mantenga un registro detallado de rotaciones y ajuste según las condiciones climáticas.";
+                }
+                
+                if (stockingRate < 1.5) {
+                    managementRec += " Su capacidad de carga es baja, considere aumentar el número de animales o diversificar la producción.";
+                } else if (stockingRate > 3) {
+                    managementRec += " Su capacidad de carga es alta, monitorée cuidadosamente la condición corporal de los animales y la salud del pastizal.";
+                }
+                
+                document.getElementById('management-recommendation').textContent = managementRec;
+                
+                // Recomendaciones para infraestructura
+                let infrastructureRec = "";
+                if (waterAccess === 'poor' || waterAccess === 'regular') {
+                    infrastructureRec = "Invierta en infraestructura hídrica como bebederos, tanques de almacenamiento y sistemas de distribución para garantizar acceso permanente al agua.";
+                } else {
+                    infrastructureRec = "Su acceso al agua es adecuado. Realice mantenimiento periódico a la infraestructura existente.";
+                }
+                
+                if (supplyType === 'direct') {
+                    infrastructureRec += " Considere implementar sistemas de sombra y áreas de descanso para mejorar el bienestar animal durante el pastoreo directo.";
+                }
+                
+                document.getElementById('infrastructure-recommendation').textContent = infrastructureRec;
+            }
+        });
+    </script>
+</body>
+</html>
